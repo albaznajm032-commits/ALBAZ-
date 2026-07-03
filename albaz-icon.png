@@ -1,0 +1,109 @@
+html
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>تحويل الأيقونة</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Cairo',sans-serif;background:#0a0a14;color:#ededf5;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;gap:24px}
+h1{font-size:22px;font-weight:800;color:#ededf5;margin-bottom:4px}
+.subtitle{font-size:13px;color:#8585a8;margin-bottom:24px}
+.canvas-wrap{position:relative;border-radius:24px;overflow:hidden;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.05),0 20px 60px rgba(168,85,247,0.08)}
+canvas{display:block;max-width:100%;height:auto;image-rendering:auto}
+.download-btn{padding:16px 48px;border-radius:16px;border:none;color:#fff;font-family:'Cairo';font-size:16px;font-weight:700;cursor:pointer;
+  background:linear-gradient(135deg,#7c3aed,#a855f7,#06b6d4);
+  box-shadow:0 6px 24px rgba(168,85,247,0.3);transition:all .3s}
+.download-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(168,85,247,0.4)}
+.download-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.size-label{font-size:12px;color:#8585a8;margin-top:12px}
+</style>
+</head>
+<body>
+<h1>تحويل الأيقونة لـ PNG</h1>
+<div class="subtitle>اضغط الزر لتحويل الأيقونة وحفظها كصورة</div>
+<div class="canvas-wrap"><canvas id="cvs"></canvas></div>
+<button class="download-btn" id="dlBtn" onclick="downloadPNG()"><i class="fas fa-download" style="margin-left:8px;"></i>حفظ الأيقونة</button>
+<div class="size-label" id="sizeLabel"></div>
+<script>
+const cvs=document.getElementById('cvs'),cx=cvs.getContext('2d');
+// أبعاد الإخراج
+const SIZE=512;
+cvs.width=SIZE;cvs.height=SIZE;
+
+// الأيقونة مبنية بـ Canvas
+function drawIcon(){
+  // خلفية متدرج
+  const g=cx.createLinearGradient(0,0,SIZE,SIZE,0.2,SIZE);
+  g.addColorStop(0,'#7c3aed');g.addColorStop(0.4,'#a855f7');g.addColor(0.7,'#06b6d4');g.addColorStop(1,'#06b6d4');
+  cx.fillStyle=g;cx.fillRect(0,0,SIZE,SIZE);
+  // زوايا مستديرة دائرية
+  cx.save();
+  cx.translate(SIZE/2,SIZE*0.68);
+  const r=SIZE*0.06;
+  for(let i=0;i<24;i++){
+    cx.rotate(Math.PI*2/24*i);
+    cx.beginPath();cx.arc(SIZE*0.22,0,r,0,Math.PI*2);
+    cx.fillStyle=i%2===0?'rgba(6,182,212,0.2)':'rgba(168,85,247,0.12)';
+    cx.fill();
+  }
+  cx.restore();
+  // الحرف A
+  cx.fillStyle='#ffffff';
+  cx.font=`bold ${SIZE*0.48}px Orbitron,sans-serif`;
+  cx.textAlign='center';cx.textBaseline='middle';
+  cx.fillText('A',SIZE/2,SIZE*0.57);
+  // خط زخرفة
+  const ly=SIZE*0.66;
+  cx.strokeStyle='rgba(255,255,255,0.5)';cx.lineWidth=Math.max(3,SIZE*0.012);cx.lineCap='round';
+  cx.beginPath();cx.moveTo(SIZE*0.22,ly);cx.lineTo(SIZE*0.78,ly);cx.stroke();
+  // نقطة متوهجة
+  const cxp=SIZE/2,cyp2=SIZE*0.68;
+  cx.fillStyle='#ffffff';
+  cx.beginPath();cx.arc(cxp,cyp2,Math.max(1,SIZE*0.015),0,Math.PI*2);cx.fill();
+  // إضاءة
+  const rg=cx.createRadialGradient(SIZE*0.35,SIZE*0.35,0,SIZE*0.18);
+  rg.addColorStop(0,'rgba(6,182,212,0.3)');rg.addColorStop(1,'rgba(6,182,212,0)');
+  cx.fillStyle=rg;cx.fillRect(0,0,SIZE,SIZE);
+  // نجمة
+  cx.fillStyle='rgba(255,255,255,0.6)';
+  const np=SIZE*0.015;
+  for(let i=0;i<5;i++){
+    const a=Math.PI*2/5*i-0.2;
+    const x1=cxp+Math.cos(a)*SIZE*0.12,y1=cyp2+Math.sin(a)*SIZE*0.12;
+    const x2=cxp+Math.cos(a+0.3)*SIZE*0.22,y2=cyp2+Math.sin(a+0.3)*SIZE*0.22;
+    cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2,y2);
+    cx.strokeStyle='rgba(255,255,255,0.5)';cx.lineWidth=Math.max(1,SIZE*0.005);cx.lineCap='round';cx.stroke();
+  }
+  // نص ALBAZ أسفل
+  cx.fillStyle='rgba(255,255,255,0.4)';
+  cx.font=`600 ${SIZE*0.055}px Orbitron,sans-serif`;
+  cx.textAlign='center';cx.textBaseline='middle';
+  cx.fillText('ALBAZ',SIZE/2,SIZE*0.83);
+}
+drawIcon();
+function downloadPNG(){
+  document.getElementById('dlBtn').disabled=true;document.getElementById('dlBtn').textContent='جاري التحويل...';
+  setTimeout(()=>{
+    const link=document.createElement('a');
+    link.download='albaz-icon-192.png';
+    // صورة 192x192
+    const cvs192=document.createElement('canvas');cvs192.width=192;cvs192.height=192;
+    const c2=cvs192.getContext('2d');c2.drawImage(cvs,0,0,192,192);
+    link.href=cvs192.toDataURL('image/png');
+    link.click();
+    // صورة 512x512
+    const link2=document.createElement('a');
+    link2.download='albaz-icon-512.png';
+    link2.href=cvs.toDataURL('image/png');
+    link2.click();
+    document.getElementById('dlBtn').disabled=false;
+    document.getElementById('dlBtn').innerHTML='<i class="fas fa-check" style="margin-left:8px;"></i>تم! احفظ الملفين'
+    document.getElementById('sizeLabel').textContent='تم حفظ albaz-icon-192.png و albaz-icon-512.png';
+  },1000);
+}
+</script>
+</body>
+</html>
